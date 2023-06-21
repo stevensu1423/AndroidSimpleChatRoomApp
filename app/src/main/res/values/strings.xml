@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">AndroidChatRoom</string>
+    <string name="send">傳送</string>
+    <string name="send_friend">好友邀請</string>
+    <string name="login">登入</string>
+    <string name="register">註冊</string>
+    <string name="chat">Android聊天室</string>
+    <string name="account">帳號</string>
+    <string name="password">密碼</string>
+
+</resources>
