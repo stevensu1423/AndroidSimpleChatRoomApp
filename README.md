@@ -7,13 +7,13 @@ Android簡易聊天室的App端，你可以在[這裡](https://github.com/steven
 ## 修改server連結
 至 **web/ApiClient**
 ```kotlin
-private val baseUrl = "在這邊輸入server端的url" //範例: http://172.0.0.1:3000/chat
+private val baseUrl = "在這邊輸入server端的url" //範例: http://xxx.xxx.xxx.xxx:3000/chat
 ```
 
 ## 修改webSocket連結
 至 **view/CreateRoomActivity**
 ```kotlin
-private val address = "在這邊輸入server端webSocket的url" //範例: http://172.0.0.1:3000
+private val address = "在這邊輸入server端webSocket的url" //範例: http://xxx.xxx.xxx.xxx:3000
 ```
 
 ## 注意事項
