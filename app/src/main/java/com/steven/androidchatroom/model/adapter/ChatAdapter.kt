@@ -45,13 +45,13 @@ class ChatAdapter(private var memberId: String, val friendName: String, val cont
         holder.time.text = dataList?.get(position)?.time.toString()
         if(dataList?.get(position)?.senderId == memberId){
             holder.message.text = "你 : "+dataList?.get(position)?.message.toString()
-//            holder.isRead.visibility = if(dataList?.get(position)?.isRead == true){
-//                View.VISIBLE
-//            }else{
-//                View.GONE
-//            }
+            holder.isRead.visibility = if(dataList?.get(position)?.isRead == true){
+                View.VISIBLE
+            }else{
+                View.GONE
+            }
         }else{
-//            holder.isRead.visibility = View.GONE
+            holder.isRead.visibility = View.GONE
             holder.message.text = "$friendName : "+dataList?.get(position)?.message.toString()
         }
         if(dataList?.get(position)?.isImage == true){
