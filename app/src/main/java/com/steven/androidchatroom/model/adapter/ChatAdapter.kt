@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -23,6 +24,12 @@ class ChatAdapter(private var memberId: String, val friendName: String, val cont
     }
 
     var dataList: ArrayList<ApiResponse.ChatData> ? = arrayListOf()
+
+    private lateinit var listener: CallbackListener
+
+    interface CallbackListener{
+        fun onUnSendClick(data: ApiResponse.ChatData)
+    }
 
     class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
          val message: TextView = itemView.findViewById(R.id.tv_msg)
@@ -42,26 +49,54 @@ class ChatAdapter(private var memberId: String, val friendName: String, val cont
 
     @SuppressLint("ResourceAsColor", "SetTextI18n")
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
-        holder.time.text = dataList?.get(position)?.time.toString()
-        if(dataList?.get(position)?.senderId == memberId){
-            holder.message.text = "你 : "+dataList?.get(position)?.message.toString()
-            holder.isRead.visibility = if(dataList?.get(position)?.isRead == true){
-                View.VISIBLE
-            }else{
-                View.GONE
-            }
-        }else{
+
+        if(dataList?.get(position)?.isUnSend == true){
             holder.isRead.visibility = View.GONE
-            holder.message.text = "$friendName : "+dataList?.get(position)?.message.toString()
-        }
-        if(dataList?.get(position)?.isImage == true){
-            val url = dataList?.get(position)?.message
-            holder.image.visibility = View.VISIBLE
-            holder.message.visibility = View.GONE
-            Glide.with(context).load(Uri.parse(url)).into(holder.image)
-        }else{
-            holder.image.visibility = View.GONE
-            holder.message.visibility = View.VISIBLE
+            holder.time.visibility = View.GONE
+            holder.message.text = "此訊息已被收回"
+            holder.itemView.setOnLongClickListener(null)
+        }else {
+            holder.time.visibility = View.VISIBLE
+
+            holder.time.text = dataList?.get(position)?.time.toString()
+            if (dataList?.get(position)?.senderId == memberId) {
+                holder.message.text = "你 : " + dataList?.get(position)?.message.toString()
+                holder.isRead.visibility = if (dataList?.get(position)?.isRead == true) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+                holder.itemView.setOnLongClickListener {
+                    val popupMenu = PopupMenu(holder.itemView.context, holder.itemView)
+                    val inflater = popupMenu.menuInflater
+                    inflater.inflate(R.menu.menu, popupMenu.menu)
+                    popupMenu.setOnMenuItemClickListener {
+                        when (it.itemId) {
+                            R.id.unSend -> {
+                                listener.onUnSendClick(dataList?.get(position)!!)
+                                true
+                            }
+                            else -> {
+                                false
+                            }
+                        }
+                    }
+                    popupMenu.show()
+                    true
+                }
+            } else {
+                holder.isRead.visibility = View.GONE
+                holder.message.text = "$friendName : " + dataList?.get(position)?.message.toString()
+            }
+            if (dataList?.get(position)?.isImage == true) {
+                val url = dataList?.get(position)?.message
+                holder.image.visibility = View.VISIBLE
+                holder.message.visibility = View.GONE
+                Glide.with(context).load(Uri.parse(url)).into(holder.image)
+            } else {
+                holder.image.visibility = View.GONE
+                holder.message.visibility = View.VISIBLE
+            }
         }
     }
 
@@ -82,4 +117,7 @@ class ChatAdapter(private var memberId: String, val friendName: String, val cont
         notifyDataSetChanged()
     }
 
+    fun setCallbackListener(callbackListener: CallbackListener){
+        this.listener = callbackListener
+    }
 }
