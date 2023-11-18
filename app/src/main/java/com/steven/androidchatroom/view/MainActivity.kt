@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         memberId = intent.getStringExtra("memberId") ?: ""
 
 
-        refresh.setOnClickListener {
+        mBinding.refresh.setOnClickListener {
             refresh()
         }
         initListener()
