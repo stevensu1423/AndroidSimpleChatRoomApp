@@ -41,6 +41,10 @@ interface ApiInterface {
     @POST("register")
     fun register(@Field("email") email: String, @Field("password") password: String, @Field("userName") userName: String): Call<ApiResponse.RegisterResponse>
 
+    @FormUrlEncoded
+    @POST("unSendMessage")
+    fun unSendMessage(@Field("roomId") roomId: String, @Field("senderId") friendId: String, @Field("chatId") chatId: String): Call<ApiResponse.AddFriendResponse?>
+
 
 
 }

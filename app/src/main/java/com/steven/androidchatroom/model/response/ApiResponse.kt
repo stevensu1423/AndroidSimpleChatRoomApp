@@ -15,11 +15,13 @@ class ApiResponse {
         val data: ArrayList<ChatData>
     )
     data class ChatData(
+        val id: String? = null,
         val message: String? = null,
         val time: String? = null,
         val senderId: String? = null,
         val isImage: Boolean? = false,
-        val isRead: Boolean? = false
+        val isRead: Boolean? = false,
+        val isUnSend: Boolean? = false
     )
 
 
