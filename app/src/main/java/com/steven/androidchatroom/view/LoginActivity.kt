@@ -69,6 +69,7 @@ class LoginActivity : AppCompatActivity() {
                     call: Call<ApiResponse.LoginResponse>,
                     t: Throwable
                 ) {
+                    t.printStackTrace()
                 }
             })
         }

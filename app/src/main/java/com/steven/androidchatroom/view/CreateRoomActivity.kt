@@ -29,6 +29,7 @@ import com.steven.androidchatroom.model.adapter.ChatAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.web.ApiInterface
+import com.steven.androidchatroom.web.WebConfig
 import kotlinx.android.synthetic.main.activity_create_room.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -49,7 +50,7 @@ class CreateRoomActivity : AppCompatActivity() {
     private lateinit var chatAdapter: ChatAdapter
     lateinit var websocket: WebSocket
     private var roomId: String = ""
-    private val address = "在這邊輸入server端webSocket的url" //todo 在這邊輸入server端webSocket的url
+    private val address = WebConfig.WEBSOCKET_URL //todo 在這邊輸入server端webSocket的url
     private var name: String = ""
     private var memberId: String = ""
     private var friendName: String = ""
@@ -82,12 +83,11 @@ class CreateRoomActivity : AppCompatActivity() {
     }
 
     private fun initListener(){
-        mBinding.editText.isEnabled = false
         chatAdapter = ChatAdapter(memberId, friendName, this@CreateRoomActivity)
         mBinding.rvChat.addItemDecoration(ItemSpacingDecoration(8))
         mBinding.rvChat.layoutManager = LinearLayoutManager(this@CreateRoomActivity)
         mBinding.rvChat.adapter = chatAdapter
-
+        chatAdapter.setCallbackListener(callbackListener)
         mBinding.btImage.setOnClickListener{
             checkPermission()
         }
@@ -96,14 +96,8 @@ class CreateRoomActivity : AppCompatActivity() {
 
     private var callbackListener: ChatAdapter.CallbackListener = object : ChatAdapter.CallbackListener{
         override fun onUnSendClick(data: ApiResponse.ChatData) {
-            val jsonString = JSONObject()
-            jsonString.put("chatId", data.id)
-            jsonString.put("roomId", roomId)
-            jsonString.put("memberId", memberId)
-            jsonString.put("friendId", friendId)
-            jsonString.put("type", 3)
-            jsonString.put("isUnSend", true)
-            websocket.send(jsonString.toString())
+            val message = WebSocketModel.MessageModel(roomId, memberId, friendId = friendId, type = "3", isUnsend = true)
+            websocket.send(Gson().toJson(message))
 
             api.unSendMessage(roomId, memberId, data.id.toString()).enqueue(object : Callback<ApiResponse.AddFriendResponse?>{
                 override fun onResponse(
@@ -161,15 +155,9 @@ class CreateRoomActivity : AppCompatActivity() {
                 websocket.send(message.toString())
 
                 runOnUiThread {
-                    mBinding.editText.isEnabled = true
-                    chatList.add(ApiResponse.ChatData(  "連線成功", getDate(), memberId))
-                    chatAdapter.updateData(chatList)
-                    scrollToBottom(mBinding.rvChat)
-                }
-                runOnUiThread {
                     mBinding.btSend.setOnClickListener {
                         val msg = mBinding.editText.text.toString()
-
+                        val id = setChatId()
                         val imm: InputMethodManager =
                             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                         imm.hideSoftInputFromWindow(editText.windowToken, 0)
@@ -178,21 +166,7 @@ class CreateRoomActivity : AppCompatActivity() {
                             Toast.makeText(this@CreateRoomActivity, "請輸入訊息", Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
                         }
-                        websocket.send(Gson().toJson(WebSocketModel.MessageModel(roomId, memberId, name, friendId, "2", friendName, msg, false, getDate())))
-                        val json = JSONObject()
-                        val id = setChatId()
-                        json.put("id", id)
-                        json.put("roomId", roomId)
-                        json.put("memberId", memberId)
-                        json.put("name", name)
-                        json.put("friendId", friendId)
-                        json.put("type", 1)
-                        json.put("friendName", friendName)
-                        json.put("message", msg)
-                        json.put("isImage", false)
-                        json.put("isUnSend", false)
-                        json.put("time", getDate())
-                        websocket.send(json.toString())
+                        websocket.send(Gson().toJson(WebSocketModel.MessageModel(roomId, memberId, name, friendId, "1", friendName, msg, false, time = getDate(), id = id, isUnsend = false)))
                         runOnUiThread {
                             chatList.add(ApiResponse.ChatData(id = id, msg,getDate(), memberId, isUnSend = false))
                             chatAdapter.updateData(chatList)
@@ -309,22 +283,9 @@ class CreateRoomActivity : AppCompatActivity() {
                         response: retrofit2.Response<ApiResponse.UploadPhotoResponse>
                     ) {
                         if(response.body()?.status == 200){
+                            val id = setChatId()
                             val message = Gson().toJson(WebSocketModel.MessageModel(roomId, memberId, name, friendId, "1", friendName, response.body()?.url ?: "", true, getDate()))
                             websocket.send(message.toString())
-                            val json = JSONObject()
-                            val id = setChatId()
-                            json.put("id", id)
-                            json.put("roomId", roomId)
-                            json.put("memberId", memberId)
-                            json.put("name", name)
-                            json.put("friendId", friendId)
-                            json.put("type", 1)
-                            json.put("friendName", friendName)
-                            json.put("message", response.body()?.url)
-                            json.put("isImage", true)
-                            json.put("isUnSend", false)
-                            json.put("time", getDate())
-                            websocket.send(json.toString())
                             runOnUiThread {
                                 chatList.add(ApiResponse.ChatData(id = id, response.body()?.url,getDate(), memberId, true, isUnSend = false))
                                 chatAdapter.updateData(chatList)

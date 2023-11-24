@@ -11,7 +11,7 @@ import javax.net.ssl.X509TrustManager
 
 class ApiClient {
     private var retrofit: Retrofit? = null
-    private val baseUrl = "在這邊輸入server端的url"   //TODO input your server url
+    private val baseUrl = WebConfig.API_URL   //TODO input your server url
 
 
     fun getRetrofit(): Retrofit {
