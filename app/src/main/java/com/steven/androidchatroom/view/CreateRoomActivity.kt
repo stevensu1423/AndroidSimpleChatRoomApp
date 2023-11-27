@@ -161,7 +161,7 @@ class CreateRoomActivity : AppCompatActivity() {
                         val imm: InputMethodManager =
                             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                         imm.hideSoftInputFromWindow(editText.windowToken, 0)
-                        mBinding.editText.text.clear()
+                        mBinding.editText.text?.clear()
                         if(msg.isBlank()){
                             Toast.makeText(this@CreateRoomActivity, "請輸入訊息", Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
