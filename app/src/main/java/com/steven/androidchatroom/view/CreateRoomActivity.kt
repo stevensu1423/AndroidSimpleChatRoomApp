@@ -30,7 +30,6 @@ import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.web.ApiInterface
 import com.steven.androidchatroom.web.WebConfig
-import kotlinx.android.synthetic.main.activity_create_room.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONObject
@@ -160,7 +159,7 @@ class CreateRoomActivity : AppCompatActivity() {
                         val id = setChatId()
                         val imm: InputMethodManager =
                             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                        imm.hideSoftInputFromWindow(editText.windowToken, 0)
+                        imm.hideSoftInputFromWindow(mBinding.editText.windowToken, 0)
                         mBinding.editText.text?.clear()
                         if(msg.isBlank()){
                             Toast.makeText(this@CreateRoomActivity, "請輸入訊息", Toast.LENGTH_SHORT).show()
