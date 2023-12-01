@@ -70,4 +70,8 @@ class ApiResponse {
         val userName: String? = null,
         val memberId: String? = null
     )
+
+    data class ErrorResponse(
+        val message: String,
+    )
 }

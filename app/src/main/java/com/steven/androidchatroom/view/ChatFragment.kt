@@ -7,7 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.steven.androidchatroom.R
 import com.steven.androidchatroom.databinding.FragmentChatBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ChatFragment : Fragment() {
 
     private var _binding: FragmentChatBinding? = null

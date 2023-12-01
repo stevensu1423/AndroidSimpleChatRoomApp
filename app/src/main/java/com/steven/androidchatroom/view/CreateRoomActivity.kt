@@ -30,6 +30,7 @@ import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.web.ApiInterface
 import com.steven.androidchatroom.web.WebConfig
+import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONObject
@@ -40,7 +41,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.concurrent.thread
 
-
+@AndroidEntryPoint
 class CreateRoomActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityCreateRoomBinding

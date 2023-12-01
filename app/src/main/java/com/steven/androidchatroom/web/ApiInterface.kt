@@ -2,6 +2,7 @@ package com.steven.androidchatroom.web
 
 
 import com.steven.androidchatroom.model.response.ApiResponse
+import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 import retrofit2.Call
 import retrofit2.http.*
@@ -35,7 +36,7 @@ interface ApiInterface {
 
     @FormUrlEncoded
     @POST("login")
-    fun login(@Field("email") email: String, @Field("password") password: String): Call<ApiResponse.LoginResponse>
+    fun login(@Field("email") email: String, @Field("password") password: String): Flow<ApiResponse.LoginResponse>
 
     @FormUrlEncoded
     @POST("register")

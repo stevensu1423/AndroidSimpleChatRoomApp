@@ -25,6 +25,7 @@ import com.steven.androidchatroom.model.adapter.FriendAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.web.ApiInterface
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -39,6 +40,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [FriendFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
+@AndroidEntryPoint
 class FriendFragment : Fragment() {
     
     private var _binding: FragmentFriendBinding? = null

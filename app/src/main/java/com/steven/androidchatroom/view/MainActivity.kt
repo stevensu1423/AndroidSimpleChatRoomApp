@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -23,14 +24,19 @@ import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityMainBinding
 import com.steven.androidchatroom.model.adapter.FriendAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
+import com.steven.androidchatroom.viewModel.MainViewModel
 import com.steven.androidchatroom.web.ApiInterface
+import dagger.hilt.EntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityMainBinding
+    private val mViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

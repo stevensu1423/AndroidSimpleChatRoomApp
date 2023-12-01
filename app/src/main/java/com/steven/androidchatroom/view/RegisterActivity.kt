@@ -8,9 +8,11 @@ import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityRegisterBinding
 import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.web.ApiInterface
+import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Response
 
+@AndroidEntryPoint
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityRegisterBinding
