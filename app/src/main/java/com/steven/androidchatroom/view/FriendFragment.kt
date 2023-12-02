@@ -88,7 +88,7 @@ class FriendFragment : Fragment() {
     }
 
     private fun refresh(){
-        getMyFriends()
+//        getMyFriends()
         getMyFriendRequest()
 
     }
@@ -145,25 +145,25 @@ class FriendFragment : Fragment() {
 
     }
 
-    private fun getMyFriends() {
-        api.getMyFriends(memberId).enqueue(object : Callback<ApiResponse.FriendDataResponse> {
-            override fun onResponse(
-                call: Call<ApiResponse.FriendDataResponse>,
-                response: Response<ApiResponse.FriendDataResponse>
-            ) {
-                if(response.body()?.status == 200){
-                    if(response.body()?.data != null) {
-                        friendAdapter.updateData(response.body()?.data!!)
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<ApiResponse.FriendDataResponse>, t: Throwable) {
-                Toast.makeText(mActivity, "error: ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-
-        })
-    }
+//    private fun getMyFriends() {
+//        api.getMyFriends(memberId).enqueue(object : Callback<ApiResponse.FriendDataResponse> {
+//            override fun onResponse(
+//                call: Call<ApiResponse.FriendDataResponse>,
+//                response: Response<ApiResponse.FriendDataResponse>
+//            ) {
+//                if(response.body()?.status == 200){
+//                    if(response.body()?.data != null) {
+//                        friendAdapter.updateData(response.body()?.data!!)
+//                    }
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<ApiResponse.FriendDataResponse>, t: Throwable) {
+//                Toast.makeText(mActivity, "error: ${t.message}", Toast.LENGTH_SHORT).show()
+//            }
+//
+//        })
+//    }
 
     private fun getMyFriendRequest() {
         api.getMyFriendRequest(memberId).enqueue(object : Callback<ApiResponse.FriendDataResponse> {

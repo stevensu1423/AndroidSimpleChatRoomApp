@@ -24,7 +24,7 @@ interface ApiInterface {
 
     @FormUrlEncoded
     @POST("myFriends")
-    fun getMyFriends(@Field("memberId") memberId: String): Call<ApiResponse.FriendDataResponse>
+    fun getMyFriends(@Field("memberId") memberId: String): Flow<ApiResponse.FriendListResponse>
 
     @FormUrlEncoded
     @POST("myFriendRequest")

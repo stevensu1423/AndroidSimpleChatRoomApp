@@ -18,4 +18,6 @@ class MainRepository @Inject constructor(private val apiInterface: ApiInterface,
 
     fun login(account: String, password: String) = apiInterface.login(account, password)
 
+    fun getMyFriends(memberId: String) = apiInterface.getMyFriends(memberId)
+
 }

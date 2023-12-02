@@ -74,4 +74,21 @@ class ApiResponse {
     data class ErrorResponse(
         val message: String,
     )
+
+    data class FriendListResponse(
+        val status: Int?,
+        val message: String?,
+        val data: ArrayList<FriendListData> = arrayListOf()
+    )
+
+    data class FriendListData(
+        val friend: Friend?,
+        val roomId: String?,
+        val latestChat: ArrayList<ChatData> = arrayListOf()
+    )
+
+    data class Friend(
+        val memberId: String?,
+        val name: String?
+    )
 }

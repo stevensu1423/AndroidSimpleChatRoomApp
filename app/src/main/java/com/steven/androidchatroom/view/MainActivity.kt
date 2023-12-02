@@ -43,6 +43,12 @@ class MainActivity : AppCompatActivity() {
         mBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
 
+        intent?.getStringExtra("memberId")?.let {
+            mViewModel.memberId.value = it
+        }
+        intent?.getStringExtra("userName")?.let {
+            mViewModel.userName.value = it
+        }
 
     }
 

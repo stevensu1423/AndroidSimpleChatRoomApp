@@ -3,18 +3,14 @@ package com.steven.androidchatroom.view
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityLoginBinding
-import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.viewModel.LoginViewModel
 import com.steven.androidchatroom.web.ApiInterface
 import dagger.hilt.android.AndroidEntryPoint
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+
 @AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
@@ -38,13 +34,18 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun initObserver(){
-        mViewModel.loginiRespose?.observe(this){
+        mViewModel.loginResponse?.observe(this){
             it?.let { data ->
                 val intent = Intent()
                 intent.putExtra("userName", data.userName)
                 intent.putExtra("memberId", data.memberId)
                 intent.setClass(this@LoginActivity, MainActivity::class.java)
                 startActivity(intent)
+            }
+        }
+        mViewModel.errorResponse?.observe(this){
+            it?.let {
+                Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
             }
         }
     }
