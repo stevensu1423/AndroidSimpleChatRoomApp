@@ -53,8 +53,6 @@ class ChatFragment : Fragment() {
         initView()
         initListener()
         initObserver()
-        mViewModel.getMyFriendList()
-
     }
 
     private fun initView(){
@@ -77,6 +75,12 @@ class ChatFragment : Fragment() {
             mViewModel.friendChatUnreadCount.postValue(unReadCount)
             mAdapter.updateList(it.data)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(isAdded)
+            mViewModel.getMyFriendList()
     }
 
     override fun onDestroyView() {

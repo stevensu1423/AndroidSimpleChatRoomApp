@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.steven.androidchatroom.R
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityMainBinding
+import com.steven.androidchatroom.dialog.LoadingDialog
 import com.steven.androidchatroom.model.adapter.FriendAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.util.toast
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mBinding: ActivityMainBinding
     private val mViewModel: MainViewModel by viewModels()
     private lateinit var mNavController: NavController
+    private lateinit var loadingDialog: LoadingDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         intent?.getStringExtra("userName")?.let {
             mViewModel.userName.value = it
         }
+        loadingDialog = LoadingDialog(this)
         initObserver()
     }
 
@@ -66,6 +69,13 @@ class MainActivity : AppCompatActivity() {
         }
         mViewModel.errorResponse?.observe(this){
             toast(it.message)
+        }
+        mViewModel.dialogLoading?.observe(this){
+            if(it){
+                loadingDialog.show()
+            }else{
+                loadingDialog.dismiss()
+            }
         }
     }
     override fun onStart() {

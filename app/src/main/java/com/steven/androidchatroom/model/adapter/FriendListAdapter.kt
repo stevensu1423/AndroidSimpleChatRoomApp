@@ -46,6 +46,7 @@ class FriendListAdapter: RecyclerView.Adapter<FriendListAdapter.VH>() {
 
     fun updateList(data: ArrayList<ApiResponse.FriendListData>){
         mList = data
+        notifyDataSetChanged()
     }
 
     class VH(private val parent: ViewGroup, val mBinding: ItemFriendListBinding =  ItemFriendListBinding.inflate(

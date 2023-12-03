@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityLoginBinding
+import com.steven.androidchatroom.dialog.LoadingDialog
 import com.steven.androidchatroom.viewModel.LoginViewModel
 import com.steven.androidchatroom.web.ApiInterface
 import dagger.hilt.android.AndroidEntryPoint
@@ -16,9 +17,7 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityLoginBinding
     private val mViewModel: LoginViewModel by viewModels()
-    private val mApiClient = ApiClient()
-    private lateinit var api: ApiInterface
-
+    private lateinit var loadingDialog: LoadingDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +26,8 @@ class LoginActivity : AppCompatActivity() {
         mBinding.lifecycleOwner = this
         mBinding.vm = mViewModel
         setContentView(mBinding.root)
-        api = mApiClient.getRetrofit().create(ApiInterface::class.java)
+
+        loadingDialog = LoadingDialog(this)
 
         initListener()
         initObserver()
@@ -48,13 +48,19 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
             }
         }
+        mViewModel.dialogLoading?.observe(this){
+            if(it){
+                loadingDialog.show()
+            }else{
+                loadingDialog.dismiss()
+            }
+        }
     }
 
     private fun initListener(){
 
         mBinding.btRegister.setOnClickListener{
-            intent.setClass(this@LoginActivity, RegisterActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
 
         mBinding.btLogin.setOnClickListener{
@@ -63,34 +69,6 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             mViewModel.login()
-//            api.login(email, password).enqueue(object : Callback<ApiResponse.LoginResponse> {
-//                override fun onResponse(
-//                    call: Call<ApiResponse.LoginResponse>,
-//                    response: Response<ApiResponse.LoginResponse>
-//                ) {
-//                    if (response.body()?.status == 200) {
-//                        val data = response.body()
-//                        val intent = Intent()
-//                        intent.putExtra("userName", data?.userName)
-//                        intent.putExtra("memberId", data?.memberId)
-//                        intent.setClass(this@LoginActivity, MainActivity::class.java)
-//                        startActivity(intent)
-//                    } else {
-//                        Toast.makeText(
-//                            this@LoginActivity,
-//                            response.body()?.message.toString(),
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-//                    }
-//                }
-//
-//                override fun onFailure(
-//                    call: Call<ApiResponse.LoginResponse>,
-//                    t: Throwable
-//                ) {
-//                    t.printStackTrace()
-//                }
-//            })
         }
 
     }
