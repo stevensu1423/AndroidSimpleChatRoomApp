@@ -2,7 +2,6 @@ package com.steven.androidchatroom.web
 
 
 import com.steven.androidchatroom.model.response.ApiResponse
-import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 import retrofit2.Call
 import retrofit2.http.*
@@ -24,11 +23,11 @@ interface ApiInterface {
 
     @FormUrlEncoded
     @POST("myFriends")
-    fun getMyFriends(@Field("memberId") memberId: String): Flow<ApiResponse.FriendListResponse>
+    suspend fun getMyFriends(@Field("memberId") memberId: String): ApiResponse.FriendListResponse
 
     @FormUrlEncoded
     @POST("myFriendRequest")
-    fun getMyFriendRequest(@Field("memberId") memberId: String): Call<ApiResponse.FriendDataResponse>
+    suspend fun getMyFriendRequest(@Field("memberId") memberId: String): ApiResponse.FriendDataResponse
 
     @FormUrlEncoded
     @POST("addFriend")
@@ -36,7 +35,7 @@ interface ApiInterface {
 
     @FormUrlEncoded
     @POST("login")
-    fun login(@Field("email") email: String, @Field("password") password: String): Flow<ApiResponse.LoginResponse>
+    suspend fun login(@Field("email") email: String, @Field("password") password: String): ApiResponse.LoginResponse
 
     @FormUrlEncoded
     @POST("register")

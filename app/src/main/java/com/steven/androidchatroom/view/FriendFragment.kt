@@ -15,14 +15,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.steven.androidchatroom.R
 import com.steven.androidchatroom.databinding.DialogFriendBinding
 import com.steven.androidchatroom.databinding.DialogFriendConfirmBinding
 import com.steven.androidchatroom.databinding.FragmentFriendBinding
 import com.steven.androidchatroom.model.adapter.FriendAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
+import com.steven.androidchatroom.util.ItemDecoration
+import com.steven.androidchatroom.viewModel.MainViewModel
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.web.ApiInterface
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,7 +48,8 @@ class FriendFragment : Fragment() {
     private var _binding: FragmentFriendBinding? = null
     private val mBinding: FragmentFriendBinding get() = _binding!!
 
-    private var friendAdapter = FriendAdapter()
+    private val mViewModel: MainViewModel by activityViewModels()
+
     private var friendRequestAdapter = FriendAdapter()
 
     private val mApiClient = ApiClient()
@@ -76,71 +79,57 @@ class FriendFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         api = mApiClient.getRetrofit().create(ApiInterface::class.java)
 
-//        userName = mActivity.intent.getStringExtra("userName").toString() ?: ""
-//        memberId = intent.getStringExtra("memberId") ?: ""
-
-
-        mBinding.refresh.setOnClickListener {
-            refresh()
-        }
+        initObserver()
         initListener()
-        refresh()
     }
 
-    private fun refresh(){
-//        getMyFriends()
-        getMyFriendRequest()
-
+    private fun initObserver(){
+        mViewModel.friendRequestResponse?.observe(viewLifecycleOwner){
+            friendRequestAdapter.updateData(it.data)
+        }
     }
-
 
 
     @SuppressLint("SetTextI18n")
     private fun initListener() {
-        mBinding.rvMyFriends.layoutManager = LinearLayoutManager(mActivity)
-        mBinding.rvMyFriends.addItemDecoration(ItemSpacingDecoration(4))
-        mBinding.rvMyFriends.adapter = friendAdapter
-
         mBinding.rvMyFriendRequest.layoutManager = LinearLayoutManager(mActivity)
-        mBinding.rvMyFriendRequest.addItemDecoration(ItemSpacingDecoration(4))
+        mBinding.rvMyFriendRequest.addItemDecoration(ItemDecoration(4, 4, 4, 4))
         mBinding.rvMyFriendRequest.adapter = friendRequestAdapter
 
-
-        friendAdapter.setCallbackListener(friendAdapterListener)
         friendRequestAdapter.setCallbackListener(friendAdapterListener)
 
-        mBinding.btAddFriend.setOnClickListener{
-            showAskFriendDialog(object : DialogCallBack{
-                override fun confirm(dialogInterface: DialogInterface, data: String) {
-                    api.addFriend(memberId, userName, data).enqueue(object :
-                        Callback<ApiResponse.AddFriendResponse> {
-                        override fun onResponse(
-                            call: Call<ApiResponse.AddFriendResponse>,
-                            response: Response<ApiResponse.AddFriendResponse>
-                        ) {
-                            if(response.body()?.status == 200){
-                                Toast.makeText(mActivity, "${response.body()?.message}", Toast.LENGTH_SHORT).show()
-                                dialogInterface.dismiss()
-                            }else{
-                                Toast.makeText(mActivity, "${response.body()?.message}", Toast.LENGTH_SHORT).show()
-                            }
-                            refresh()
-                        }
-
-                        override fun onFailure(
-                            call: Call<ApiResponse.AddFriendResponse>,
-                            t: Throwable
-                        ) {
-                        }
-
-                    })
-                }
-
-                override fun cancel(dialogInterface: DialogInterface) {
-                    dialogInterface.dismiss()
-                }
-            }).show()
-        }
+//        mBinding.btAddFriend.setOnClickListener{
+//            showAskFriendDialog(object : DialogCallBack{
+//                override fun confirm(dialogInterface: DialogInterface, data: String) {
+//                    api.addFriend(memberId, userName, data).enqueue(object :
+//                        Callback<ApiResponse.AddFriendResponse> {
+//                        override fun onResponse(
+//                            call: Call<ApiResponse.AddFriendResponse>,
+//                            response: Response<ApiResponse.AddFriendResponse>
+//                        ) {
+//                            if(response.body()?.status == 200){
+//                                Toast.makeText(mActivity, "${response.body()?.message}", Toast.LENGTH_SHORT).show()
+//                                dialogInterface.dismiss()
+//                            }else{
+//                                Toast.makeText(mActivity, "${response.body()?.message}", Toast.LENGTH_SHORT).show()
+//                            }
+//                            refresh()
+//                        }
+//
+//                        override fun onFailure(
+//                            call: Call<ApiResponse.AddFriendResponse>,
+//                            t: Throwable
+//                        ) {
+//                        }
+//
+//                    })
+//                }
+//
+//                override fun cancel(dialogInterface: DialogInterface) {
+//                    dialogInterface.dismiss()
+//                }
+//            }).show()
+//        }
 
 
     }
@@ -164,25 +153,6 @@ class FriendFragment : Fragment() {
 //
 //        })
 //    }
-
-    private fun getMyFriendRequest() {
-        api.getMyFriendRequest(memberId).enqueue(object : Callback<ApiResponse.FriendDataResponse> {
-            override fun onResponse(
-                call: Call<ApiResponse.FriendDataResponse>,
-                response: Response<ApiResponse.FriendDataResponse>
-            ) {
-                if(response.body()?.status == 200){
-                    if(response.body()?.data != null)
-                        friendRequestAdapter.updateData(response.body()?.data!!)
-                }
-            }
-
-            override fun onFailure(call: Call<ApiResponse.FriendDataResponse>, t: Throwable) {
-                Toast.makeText(mActivity, "error: ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-
-        })
-    }
 
     private fun showAskFriendDialog(callback: DialogCallBack): AlertDialog {
         val binding = mActivity?.layoutInflater?.let { DialogFriendBinding.inflate(it) }
@@ -258,7 +228,6 @@ class FriendFragment : Fragment() {
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
-                                    refresh()
                                     dialogInterface.dismiss()
                                 }
 
@@ -290,22 +259,6 @@ class FriendFragment : Fragment() {
                 mActivity?.let { intent.setClass(it, CreateRoomActivity::class.java) }
                 startActivity(intent)
             }
-        }
-    }
-
-
-
-    class ItemSpacingDecoration(private val spacing: Int) : RecyclerView.ItemDecoration() {
-        override fun getItemOffsets(
-            outRect: Rect,
-            view: View,
-            parent: RecyclerView,
-            state: RecyclerView.State
-        ) {
-            outRect.left = spacing
-            outRect.right = spacing
-            outRect.top = spacing
-            outRect.bottom = spacing
         }
     }
 }

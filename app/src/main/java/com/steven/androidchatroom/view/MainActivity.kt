@@ -14,6 +14,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -24,6 +25,7 @@ import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityMainBinding
 import com.steven.androidchatroom.model.adapter.FriendAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
+import com.steven.androidchatroom.util.toast
 import com.steven.androidchatroom.viewModel.MainViewModel
 import com.steven.androidchatroom.web.ApiInterface
 import dagger.hilt.EntryPoint
@@ -37,6 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityMainBinding
     private val mViewModel: MainViewModel by viewModels()
+    private lateinit var mNavController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,14 +52,38 @@ class MainActivity : AppCompatActivity() {
         intent?.getStringExtra("userName")?.let {
             mViewModel.userName.value = it
         }
-
+        initObserver()
     }
 
+    private fun initObserver(){
+        mViewModel.friendChatUnreadCount.observe(this){
+            val badge = mBinding.bnvHome.getOrCreateBadge(R.id.navigation_home)
+            badge.number = it
+        }
+        mViewModel.friendRequestCount.observe(this){
+            val badge = mBinding.bnvHome.getOrCreateBadge(R.id.navigation_friend)
+            badge.number = it
+        }
+        mViewModel.errorResponse?.observe(this){
+            toast(it.message)
+        }
+    }
     override fun onStart() {
         super.onStart()
-        mBinding.bnvHome.setupWithNavController(mBinding.navHome.findNavController())
-
-
+        mNavController = mBinding.navHome.findNavController()
+        mBinding.bnvHome.setupWithNavController(mNavController)
+        mBinding.bnvHome.setOnItemSelectedListener {
+            when(it.itemId){
+                R.id.navigation_home -> {
+                    mBinding.tvTitle.text = "聊天"
+                }
+                R.id.navigation_friend -> {
+                    mBinding.tvTitle.text = "好友邀請"
+                }
+            }
+            mNavController.navigate(it.itemId)
+            true
+        }
     }
 
 

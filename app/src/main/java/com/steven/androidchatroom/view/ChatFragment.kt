@@ -15,6 +15,7 @@ import com.steven.androidchatroom.R
 import com.steven.androidchatroom.databinding.FragmentChatBinding
 import com.steven.androidchatroom.model.adapter.FriendAdapter
 import com.steven.androidchatroom.model.adapter.FriendListAdapter
+import com.steven.androidchatroom.util.ItemDecoration
 import com.steven.androidchatroom.viewModel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -66,6 +67,14 @@ class ChatFragment : Fragment() {
 
     private fun initObserver(){
         mViewModel.friendListResponse?.observe(viewLifecycleOwner){
+            var unReadCount = 0
+            it.data.forEach {
+                it.latestChat.forEach {
+                    if(it.isRead == false)
+                        unReadCount++
+                }
+            }
+            mViewModel.friendChatUnreadCount.postValue(unReadCount)
             mAdapter.updateList(it.data)
         }
     }
@@ -73,18 +82,5 @@ class ChatFragment : Fragment() {
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()
-    }
-
-    class ItemDecoration: RecyclerView.ItemDecoration(){
-        override fun getItemOffsets(
-            outRect: Rect,
-            view: View,
-            parent: RecyclerView,
-            state: RecyclerView.State
-        ) {
-            super.getItemOffsets(outRect, view, parent, state)
-            outRect.left =  16
-            outRect.right = 16
-        }
     }
 }
