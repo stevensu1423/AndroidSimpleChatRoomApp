@@ -20,4 +20,11 @@ class MainRepository @Inject constructor(private val apiInterface: ApiInterface,
         emit(apiInterface.getMyFriendRequest(memberId))
     }.flowOn(coroutineContext)
 
+    suspend fun sendFriendRequest(myMemberId: String, myName: String, email: String) = flow {
+        emit(apiInterface.addFriendRequest(myMemberId, myName, email))
+    }.flowOn(coroutineContext)
+
+    suspend fun friendConfirm(memberId: String, requestId: String, myName: String, requestName: String) = flow {
+        emit(apiInterface.friendConfirm(memberId, requestId, myName, requestName))
+    }.flowOn(coroutineContext)
 }

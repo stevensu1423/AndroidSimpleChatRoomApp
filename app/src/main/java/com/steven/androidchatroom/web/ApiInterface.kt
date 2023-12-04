@@ -19,7 +19,7 @@ interface ApiInterface {
 
     @FormUrlEncoded
     @POST("friendConfirm")
-    fun friendConfirm(@Field("memberId") memberId: String, @Field("requestId") requestId: String, @Field("myName") myName: String, @Field("requestName") requestName: String): Call<ApiResponse.FriendDataResponse>
+    suspend fun friendConfirm(@Field("memberId") memberId: String, @Field("requestId") requestId: String, @Field("myName") myName: String, @Field("requestName") requestName: String): ApiResponse.AddFriendResponse
 
     @FormUrlEncoded
     @POST("myFriends")
@@ -31,7 +31,7 @@ interface ApiInterface {
 
     @FormUrlEncoded
     @POST("addFriend")
-    fun addFriend(@Field("myMemberId") myMemberId: String, @Field("myName") myName: String, @Field("email") email: String): Call<ApiResponse.AddFriendResponse>
+    suspend fun addFriendRequest(@Field("myMemberId") myMemberId: String, @Field("myName") myName: String, @Field("email") email: String): ApiResponse.AddFriendResponse
 
     @FormUrlEncoded
     @POST("login")

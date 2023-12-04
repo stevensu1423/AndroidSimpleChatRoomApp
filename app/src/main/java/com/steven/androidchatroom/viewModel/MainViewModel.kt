@@ -29,10 +29,13 @@ class MainViewModel @Inject constructor(private val repository: MainRepository):
     var friendRequestCount: MutableLiveData<Int> = MutableLiveData<Int>().apply {
         value = 0
     }
+
     var friendListResponse: MutableLiveData<ApiResponse.FriendListResponse>? = MutableLiveData()
     var errorResponse: MutableLiveData<ApiResponse.ErrorResponse>? = MutableLiveData()
     var friendRequestResponse: MutableLiveData<ApiResponse.FriendDataResponse>? = MutableLiveData()
     var dialogLoading: MutableLiveData<Boolean>? = MutableLiveData(false)
+    var addFriendResponse: MutableLiveData<ApiResponse.AddFriendResponse>? = MutableLiveData()
+    var friendConfirmResponse: MutableLiveData<ApiResponse.AddFriendResponse>? = MutableLiveData()
 
 
     fun getMyFriendList(){
@@ -53,6 +56,24 @@ class MainViewModel @Inject constructor(private val repository: MainRepository):
         }
     }
 
+    fun sendFriendRequest(friendId: String){
+        viewModelScope.launch {
+            repository.sendFriendRequest(memberId.value.toString(), userName.value.toString(), friendId).catch {
+                errorResponse?.postValue(ApiResponse.ErrorResponse("錯誤 : ${it.message}"))
+            }.onStart {
+                dialogLoading?.postValue(true)
+            }.onCompletion {
+                dialogLoading?.postValue(false)
+            }.collect{
+                if(it.status == 200) {
+                    addFriendResponse?.postValue(it)
+                }else{
+                    errorResponse?.postValue(ApiResponse.ErrorResponse("錯誤 : ${it.message}"))
+                }
+            }
+        }
+    }
+
     fun getMyFriendRequest(){
         viewModelScope.launch {
             repository.getMyFriendsRequest(memberId.value.toString()).catch {
@@ -64,6 +85,21 @@ class MainViewModel @Inject constructor(private val repository: MainRepository):
                     errorResponse?.postValue(ApiResponse.ErrorResponse("錯誤 : ${it.message}"))
                 }
             }
+        }
+    }
+
+    fun friendConfirm(requestId: String, requestName: String){
+        viewModelScope.launch {
+            repository.friendConfirm(memberId.value.toString(), requestId, userName.value.toString(), requestName).catch {
+                errorResponse?.postValue(ApiResponse.ErrorResponse("錯誤 : ${it.message}"))
+            }.collect{
+                if(it.status == 200){
+                    friendConfirmResponse?.postValue(it)
+                }else{
+                    errorResponse?.postValue(ApiResponse.ErrorResponse("錯誤 : ${it.message}"))
+                }
+            }
+
         }
     }
 

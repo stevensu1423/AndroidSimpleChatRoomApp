@@ -3,6 +3,7 @@ package com.steven.androidchatroom.view
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -16,14 +17,18 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.steven.androidchatroom.R
 import com.steven.androidchatroom.databinding.DialogFriendBinding
 import com.steven.androidchatroom.databinding.DialogFriendConfirmBinding
 import com.steven.androidchatroom.databinding.FragmentFriendBinding
 import com.steven.androidchatroom.model.adapter.FriendAdapter
+import com.steven.androidchatroom.model.adapter.FriendRequestListAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.util.ItemDecoration
+import com.steven.androidchatroom.util.setLayoutSize
 import com.steven.androidchatroom.viewModel.MainViewModel
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.web.ApiInterface
@@ -50,10 +55,8 @@ class FriendFragment : Fragment() {
 
     private val mViewModel: MainViewModel by activityViewModels()
 
-    private var friendRequestAdapter = FriendAdapter()
+    private var friendRequestAdapter = FriendRequestListAdapter()
 
-    private val mApiClient = ApiClient()
-    private lateinit var api: ApiInterface
     private var userName = ""
     private var memberId = ""
     private var mContext: Context? = null
@@ -77,7 +80,6 @@ class FriendFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        api = mApiClient.getRetrofit().create(ApiInterface::class.java)
 
         initObserver()
         initListener()
@@ -85,7 +87,15 @@ class FriendFragment : Fragment() {
 
     private fun initObserver(){
         mViewModel.friendRequestResponse?.observe(viewLifecycleOwner){
-            friendRequestAdapter.updateData(it.data)
+            friendRequestAdapter.updateList(it.data)
+            mViewModel.friendRequestCount.postValue(it.data.size)
+        }
+        mViewModel.friendConfirmResponse?.observe(viewLifecycleOwner){
+            it?.let {
+                mViewModel.getMyFriendRequest()
+                findNavController().popBackStack()
+                mViewModel.friendConfirmResponse = null
+            }
         }
     }
 
@@ -95,43 +105,7 @@ class FriendFragment : Fragment() {
         mBinding.rvMyFriendRequest.layoutManager = LinearLayoutManager(mActivity)
         mBinding.rvMyFriendRequest.addItemDecoration(ItemDecoration(4, 4, 4, 4))
         mBinding.rvMyFriendRequest.adapter = friendRequestAdapter
-
         friendRequestAdapter.setCallbackListener(friendAdapterListener)
-
-//        mBinding.btAddFriend.setOnClickListener{
-//            showAskFriendDialog(object : DialogCallBack{
-//                override fun confirm(dialogInterface: DialogInterface, data: String) {
-//                    api.addFriend(memberId, userName, data).enqueue(object :
-//                        Callback<ApiResponse.AddFriendResponse> {
-//                        override fun onResponse(
-//                            call: Call<ApiResponse.AddFriendResponse>,
-//                            response: Response<ApiResponse.AddFriendResponse>
-//                        ) {
-//                            if(response.body()?.status == 200){
-//                                Toast.makeText(mActivity, "${response.body()?.message}", Toast.LENGTH_SHORT).show()
-//                                dialogInterface.dismiss()
-//                            }else{
-//                                Toast.makeText(mActivity, "${response.body()?.message}", Toast.LENGTH_SHORT).show()
-//                            }
-//                            refresh()
-//                        }
-//
-//                        override fun onFailure(
-//                            call: Call<ApiResponse.AddFriendResponse>,
-//                            t: Throwable
-//                        ) {
-//                        }
-//
-//                    })
-//                }
-//
-//                override fun cancel(dialogInterface: DialogInterface) {
-//                    dialogInterface.dismiss()
-//                }
-//            }).show()
-//        }
-
-
     }
 
 //    private fun getMyFriends() {
@@ -154,111 +128,46 @@ class FriendFragment : Fragment() {
 //        })
 //    }
 
-    private fun showAskFriendDialog(callback: DialogCallBack): AlertDialog {
-        val binding = mActivity?.layoutInflater?.let { DialogFriendBinding.inflate(it) }
-        val dialog = AlertDialog.Builder(mActivity)
-            .setCancelable(false)
-            .setView(binding?.root)
-            .create()
-        binding?.btSend?.setOnClickListener {
-            val data = binding.etFriendId.text.toString()
-            if(data.isBlank()){
-                Toast.makeText(mActivity, "請輸入好友稱呼", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            callback.confirm(dialog, data)
-        }
-        binding?.btCancel?.setOnClickListener {
-            callback.cancel(dialog)
-        }
-        dialogSize(dialog)
-        return dialog
-    }
-
-    private fun showFriendConfirmDialog(id: String, callback: DialogCallBack): AlertDialog {
+    private fun showFriendConfirmDialog(id: String, callback: (data: String?) -> Unit): Dialog? {
         val binding = mActivity?.layoutInflater?.let { DialogFriendConfirmBinding.inflate(it) }
-        val dialog = AlertDialog.Builder(mActivity)
-            .setCancelable(false)
-            .setView(binding?.root)
-            .create()
+        val dialog = mActivity?.let { Dialog(it) }
+        dialog?.setContentView(binding?.root!!)
+
         binding?.btYes?.setOnClickListener {
-            callback.confirm(dialog, id)
+            dialog?.dismiss()
+            callback(id)
         }
         binding?.btNo?.setOnClickListener {
-            callback.cancel(dialog)
+            dialog?.dismiss()
+            callback(null)
         }
-        dialogSize(dialog)
+        dialog?.setLayoutSize(mActivity!!, 0.15F, 0.75F)
         return dialog
     }
 
-    private fun dialogSize(dialog: AlertDialog) {
-        val displayMetrics = DisplayMetrics()
-        mActivity?.windowManager?.defaultDisplay?.getMetrics(displayMetrics)
-        val displayWidth: Int = displayMetrics.widthPixels
-        val layoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams()
-        layoutParams.copyFrom(dialog.window!!.attributes)
-        val dialogWindowWidth = (displayWidth * 0.85f).toInt()
-        layoutParams.width = dialogWindowWidth
-        dialog.window!!.attributes = layoutParams
+    override fun onResume() {
+        super.onResume()
+        if(isAdded)
+            mViewModel.getMyFriendRequest()
     }
 
-    interface DialogCallBack{
-        fun confirm(dialogInterface: DialogInterface, data: String)
-        fun cancel(dialogInterface: DialogInterface)
-    }
-
-    private val friendAdapterListener: FriendAdapter.CallbackListener = object: FriendAdapter.CallbackListener{
+    private val friendAdapterListener: FriendRequestListAdapter.CallbackListener = object: FriendRequestListAdapter.CallbackListener{
         override fun onFriendClick(friendData: ApiResponse.FriendData) {
             if(friendData.mType == "request") {
-                showFriendConfirmDialog(friendData.memberId!!, object : DialogCallBack {
-                    override fun confirm(dialogInterface: DialogInterface, data: String) {
-                        api.friendConfirm(memberId, friendData.memberId, userName, friendData.name.toString())
-                            .enqueue(object : Callback<ApiResponse.FriendDataResponse> {
-                                override fun onResponse(
-                                    call: Call<ApiResponse.FriendDataResponse>,
-                                    response: Response<ApiResponse.FriendDataResponse>
-                                ) {
-                                    if (response.body()?.status == 200) {
-                                        Toast.makeText(mActivity, "OK", Toast.LENGTH_SHORT)
-                                            .show()
-                                    } else {
-                                        Toast.makeText(
-                                            mActivity,
-                                            "error",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                    dialogInterface.dismiss()
-                                }
-
-                                override fun onFailure(
-                                    call: Call<ApiResponse.FriendDataResponse>,
-                                    t: Throwable
-                                ) {
-                                    Toast.makeText(
-                                        mActivity,
-                                        "error : ${t.message}",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    dialogInterface.dismiss()
-                                }
-                            })
-                    }
-
-                    override fun cancel(dialogInterface: DialogInterface) {
-                        dialogInterface.dismiss()
-                    }
-                }).show()
-            }else{
-                val intent = Intent()
-                intent.putExtra("name", userName)
-//                intent.putExtra("memberId", mActivity.memberId)
-                intent.putExtra("friendName", friendData.name)
-                intent.putExtra("friendId", friendData.memberId!!)
-                intent.putExtra("roomId", friendData.roomId)
-                mActivity?.let { intent.setClass(it, CreateRoomActivity::class.java) }
-                startActivity(intent)
+                showFriendConfirmDialog(friendData.memberId!!){
+                    mViewModel.friendConfirm(friendData.memberId, friendData.name.toString())
+                }?.show()
             }
+//            else{
+//                val intent = Intent()
+//                intent.putExtra("name", userName)
+////                intent.putExtra("memberId", mActivity.memberId)
+//                intent.putExtra("friendName", friendData.name)
+//                intent.putExtra("friendId", friendData.memberId!!)
+//                intent.putExtra("roomId", friendData.roomId)
+//                mActivity?.let { intent.setClass(it, CreateRoomActivity::class.java) }
+//                startActivity(intent)
+//            }
         }
     }
 }

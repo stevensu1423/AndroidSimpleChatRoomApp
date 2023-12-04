@@ -23,9 +23,10 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <Toolbar
+            <com.google.android.material.appbar.MaterialToolbar
                 android:layout_width="match_parent"
-                android:layout_height="50dp">
+                android:layout_height="?attr/actionBarSize"
+                >
 
                 <TextView
                     android:id="@+id/tv_title"
@@ -35,7 +36,7 @@
                     android:textColor="@color/white"
                     android:textSize="24dp"
                     android:textStyle="bold" />
-            </Toolbar>
+            </com.google.android.material.appbar.MaterialToolbar>
 
         </com.google.android.material.appbar.AppBarLayout>
 

@@ -2,6 +2,7 @@ package com.steven.androidchatroom.view
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Rect
@@ -23,9 +24,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.steven.androidchatroom.R
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityMainBinding
+import com.steven.androidchatroom.databinding.DialogFriendBinding
 import com.steven.androidchatroom.dialog.LoadingDialog
 import com.steven.androidchatroom.model.adapter.FriendAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
+import com.steven.androidchatroom.util.setLayoutSize
 import com.steven.androidchatroom.util.toast
 import com.steven.androidchatroom.viewModel.MainViewModel
 import com.steven.androidchatroom.web.ApiInterface
@@ -54,8 +57,12 @@ class MainActivity : AppCompatActivity() {
         intent?.getStringExtra("userName")?.let {
             mViewModel.userName.value = it
         }
+        mViewModel.getMyFriendRequest()
+        mViewModel.getMyFriendList()
+
         loadingDialog = LoadingDialog(this)
         initObserver()
+        initListener()
     }
 
     private fun initObserver(){
@@ -77,7 +84,60 @@ class MainActivity : AppCompatActivity() {
                 loadingDialog.dismiss()
             }
         }
+        mViewModel.addFriendResponse?.observe(this){
+            toast(it.message)
+        }
+        mViewModel.friendRequestResponse?.observe(this){
+            mViewModel.friendRequestCount.postValue(it.data.size)
+        }
+        mViewModel.friendListResponse?.observe(this){
+            var unReadCount = 0
+            it.data.forEach {
+                it.latestChat.forEach {
+                    if(it.isRead == false)
+                        unReadCount++
+                }
+            }
+            mViewModel.friendChatUnreadCount.postValue(unReadCount)
+        }
     }
+
+    private fun initListener(){
+        mBinding.toolbar.setOnMenuItemClickListener {
+            when(it.itemId){
+                R.id.menu_add_friend -> {
+                    showAskFriendDialog {
+                        it?.let {
+                            mViewModel.sendFriendRequest(it)
+                        }
+                    }.show()
+                }
+            }
+            true
+        }
+    }
+
+    private fun showAskFriendDialog(callback: (data: String?) -> Unit): Dialog {
+        val binding = layoutInflater.let { DialogFriendBinding.inflate(it) }
+        val dialog = Dialog(this)
+        dialog.setContentView(binding.root)
+        binding.btSend.setOnClickListener {
+            val data = binding.etFriendId.text.toString()
+            if(data.isBlank()){
+                toast("請輸入好友ID")
+                return@setOnClickListener
+            }
+            dialog.dismiss()
+            callback(data)
+        }
+        binding.btCancel.setOnClickListener {
+            dialog.dismiss()
+            callback(null)
+        }
+        dialog.setLayoutSize(this, 0.2F, 0.75F)
+        return dialog
+    }
+
     override fun onStart() {
         super.onStart()
         mNavController = mBinding.navHome.findNavController()
