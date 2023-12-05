@@ -4,13 +4,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.steven.androidchatroom.MainApplication
 import com.steven.androidchatroom.databinding.ItemFriendListBinding
 import com.steven.androidchatroom.model.response.ApiResponse
 
 class FriendListAdapter: RecyclerView.Adapter<FriendListAdapter.VH>() {
 
     private var mList: ArrayList<ApiResponse.FriendListData>? = arrayListOf()
+    private lateinit var onCallbackListener: OnClickCallback
+    interface OnClickCallback{
+        fun onClick(data: ApiResponse.FriendListData)
+    }
 
+    fun setOnClickCallbackListener(listener: OnClickCallback){
+        onCallbackListener = listener
+    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         return VH(parent)
     }
@@ -35,12 +43,15 @@ class FriendListAdapter: RecyclerView.Adapter<FriendListAdapter.VH>() {
         }else{
             holder.mBinding.cardViewCount.visibility = View.INVISIBLE
         }
+        holder.itemView.setOnClickListener {
+            onCallbackListener.onClick(mList?.get(position)!!)
+        }
 
     }
 
     private fun findUnReadCount(data: ArrayList<ApiResponse.ChatData>): Int{
         return data.filter {
-            it.isRead == false
+            it.isRead == false && it.senderId != MainApplication.mMemberId
         }.size
     }
 

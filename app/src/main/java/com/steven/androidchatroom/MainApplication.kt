@@ -6,4 +6,7 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class MainApplication: Application() {
 
+    companion object{
+        var mMemberId: String = ""
+    }
 }

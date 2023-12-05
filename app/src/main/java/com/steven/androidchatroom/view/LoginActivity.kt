@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
+import com.steven.androidchatroom.MainApplication
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityLoginBinding
 import com.steven.androidchatroom.dialog.LoadingDialog
@@ -36,6 +37,7 @@ class LoginActivity : AppCompatActivity() {
     private fun initObserver(){
         mViewModel.loginResponse?.observe(this){
             it?.let { data ->
+                MainApplication.mMemberId = data.memberId.toString()
                 val intent = Intent()
                 intent.putExtra("userName", data.userName)
                 intent.putExtra("memberId", data.memberId)

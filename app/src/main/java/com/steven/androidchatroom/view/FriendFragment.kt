@@ -94,7 +94,7 @@ class FriendFragment : Fragment() {
             it?.let {
                 mViewModel.getMyFriendRequest()
                 findNavController().popBackStack()
-                mViewModel.friendConfirmResponse = null
+                mViewModel.friendConfirmResponse?.value = null
             }
         }
     }

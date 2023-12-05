@@ -72,6 +72,8 @@ class CreateRoomActivity : AppCompatActivity() {
         friendId = intent.getStringExtra("friendId") ?: ""
         roomId = intent.getStringExtra("roomId") ?: ""
 
+        mBinding.tvTitle.text = friendName
+
         connectRoom()
         initListener()
         getChatList()
@@ -90,6 +92,9 @@ class CreateRoomActivity : AppCompatActivity() {
         chatAdapter.setCallbackListener(callbackListener)
         mBinding.btImage.setOnClickListener{
             checkPermission()
+        }
+        mBinding.toolbar.setNavigationOnClickListener {
+            finish()
         }
 
     }

@@ -2,6 +2,7 @@ package com.steven.androidchatroom.view
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -15,6 +16,7 @@ import com.steven.androidchatroom.R
 import com.steven.androidchatroom.databinding.FragmentChatBinding
 import com.steven.androidchatroom.model.adapter.FriendAdapter
 import com.steven.androidchatroom.model.adapter.FriendListAdapter
+import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.util.ItemDecoration
 import com.steven.androidchatroom.viewModel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,6 +63,7 @@ class ChatFragment : Fragment() {
         mBinding.rvFriendList.adapter = mAdapter
     }
     private fun initListener(){
+        mAdapter.setOnClickCallbackListener(onClickCallbackListener)
     }
 
     private fun initObserver(){
@@ -68,7 +71,7 @@ class ChatFragment : Fragment() {
             var unReadCount = 0
             it.data.forEach {
                 it.latestChat.forEach {
-                    if(it.isRead == false)
+                    if(it.isRead == false && it.senderId != mViewModel.memberId.value)
                         unReadCount++
                 }
             }
@@ -77,6 +80,18 @@ class ChatFragment : Fragment() {
         }
     }
 
+    private val onClickCallbackListener =  object: FriendListAdapter.OnClickCallback{
+        override fun onClick(data: ApiResponse.FriendListData) {
+            val intent = Intent()
+            intent.setClass(mActivity!!, CreateRoomActivity::class.java)
+            intent.putExtra("name", mViewModel.userName.value.toString())
+            intent.putExtra("memberId", mViewModel.memberId.value.toString())
+            intent.putExtra("friendName", data.friend?.name)
+            intent.putExtra("friendId", data.friend?.memberId)
+            intent.putExtra("roomId", data.roomId)
+            startActivity(intent)
+        }
+    }
     override fun onResume() {
         super.onResume()
         if(isAdded)
