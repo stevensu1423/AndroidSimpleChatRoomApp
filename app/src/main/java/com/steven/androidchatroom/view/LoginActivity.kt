@@ -9,6 +9,7 @@ import com.steven.androidchatroom.MainApplication
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityLoginBinding
 import com.steven.androidchatroom.dialog.LoadingDialog
+import com.steven.androidchatroom.util.dataStore
 import com.steven.androidchatroom.viewModel.LoginViewModel
 import com.steven.androidchatroom.web.ApiInterface
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,6 +31,7 @@ class LoginActivity : AppCompatActivity() {
 
         loadingDialog = LoadingDialog(this)
 
+        mViewModel.checkIsRememberAccount(dataStore)
         initListener()
         initObserver()
     }
@@ -37,6 +39,7 @@ class LoginActivity : AppCompatActivity() {
     private fun initObserver(){
         mViewModel.loginResponse?.observe(this){
             it?.let { data ->
+                mViewModel.setRememberAccount(dataStore)
                 MainApplication.mMemberId = data.memberId.toString()
                 val intent = Intent()
                 intent.putExtra("userName", data.userName)

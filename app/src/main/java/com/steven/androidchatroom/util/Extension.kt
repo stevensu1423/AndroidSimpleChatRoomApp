@@ -3,12 +3,18 @@ package com.steven.androidchatroom.util
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
+import com.steven.androidchatroom.util.datastore.PreferencesConstant
 
+val Context.dataStore : DataStore<Preferences> by preferencesDataStore(name = PreferencesConstant.PDS)
 fun Activity.toast(msg: String){
     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 }

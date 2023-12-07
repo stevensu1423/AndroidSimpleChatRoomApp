@@ -28,13 +28,19 @@ class FriendListAdapter: RecyclerView.Adapter<FriendListAdapter.VH>() {
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
+        val name = mList?.get(position)?.friend?.name
         val latestChat = if(mList?.get(position)?.latestChat?.isNotEmpty() == true){
-            mList?.get(position)?.latestChat?.last()
+            val data = mList?.get(position)?.latestChat?.last()
+            if(data?.message?.startsWith("http") == true && (data.message.endsWith("jpg") || data.message.endsWith("png") || data.message.endsWith("gif"))){
+                if(data.senderId == MainApplication.mMemberId) ApiResponse.ChatData(message = "你傳送了一張照片", time = data.time) else ApiResponse.ChatData(message = "${name}傳送了一張照片", time = data.time)
+            }else{
+                data
+            }
         }else{
             ApiResponse.ChatData(message = "", time = "")
         }
         val unReadCount = findUnReadCount(mList?.get(position)?.latestChat ?: arrayListOf())
-        holder.mBinding.tvName.text = mList?.get(position)?.friend?.name
+        holder.mBinding.tvName.text = name
         holder.mBinding.tvLatestMessage.text = latestChat?.message
         holder.mBinding.tvDate.text = latestChat?.time
         if(unReadCount > 0) {

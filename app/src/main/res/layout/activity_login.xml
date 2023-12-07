@@ -112,13 +112,12 @@
             android:id="@+id/bt_login"
             android:layout_width="0dp"
             android:layout_height="60dp"
-            android:layout_marginTop="32dp"
             android:enabled="@{!TextUtils.isEmpty(vm.account) &amp;&amp; !TextUtils.isEmpty(vm.password)}"
             android:text="@string/login"
             android:textColor="@color/btn_enable_hint_color"
             app:layout_constraintEnd_toStartOf="@+id/guideline3"
             app:layout_constraintStart_toStartOf="@+id/guideline2"
-            app:layout_constraintTop_toBottomOf="@+id/et_password_layout" />
+            app:layout_constraintTop_toBottomOf="@+id/cb_remember_me" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/bt_register"
@@ -129,6 +128,15 @@
             app:layout_constraintEnd_toStartOf="@+id/guideline3"
             app:layout_constraintStart_toStartOf="@+id/guideline2"
             app:layout_constraintTop_toBottomOf="@+id/bt_login" />
+
+        <CheckBox
+            android:id="@+id/cb_remember_me"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="記住我"
+            android:checked="@={vm._isRemember}"
+            app:layout_constraintEnd_toStartOf="@+id/guideline3"
+            app:layout_constraintTop_toBottomOf="@+id/et_password_layout" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

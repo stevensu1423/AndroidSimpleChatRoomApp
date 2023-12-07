@@ -15,9 +15,11 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentResolverCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,6 +29,8 @@ import com.steven.androidchatroom.databinding.ActivityCreateRoomBinding
 import com.steven.androidchatroom.model.WebSocketModel
 import com.steven.androidchatroom.model.adapter.ChatAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
+import com.steven.androidchatroom.util.ItemDecoration
+import com.steven.androidchatroom.util.toast
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.web.ApiInterface
 import com.steven.androidchatroom.web.WebConfig
@@ -45,8 +49,6 @@ import kotlin.concurrent.thread
 class CreateRoomActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityCreateRoomBinding
-    private val PICK_IMAGE_REQUEST = 9999
-    private val PERMISSON_STORAGE = 9998
     private lateinit var chatAdapter: ChatAdapter
     lateinit var websocket: WebSocket
     private var roomId: String = ""
@@ -85,13 +87,19 @@ class CreateRoomActivity : AppCompatActivity() {
     }
 
     private fun initListener(){
-        chatAdapter = ChatAdapter(memberId, friendName, this@CreateRoomActivity)
-        mBinding.rvChat.addItemDecoration(ItemSpacingDecoration(8))
-        mBinding.rvChat.layoutManager = LinearLayoutManager(this@CreateRoomActivity)
+        chatAdapter = ChatAdapter(memberId, friendName, this)
+        mBinding.rvChat.addItemDecoration(ItemDecoration(8, 8,8, 8))
+        val layoutManager = LinearLayoutManager(this)
+        layoutManager.stackFromEnd = true
+        mBinding.rvChat.layoutManager = layoutManager
         mBinding.rvChat.adapter = chatAdapter
         chatAdapter.setCallbackListener(callbackListener)
         mBinding.btImage.setOnClickListener{
-            checkPermission()
+            if(Build.VERSION.SDK_INT > 32){
+                permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+            }else {
+                permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
         }
         mBinding.toolbar.setNavigationOnClickListener {
             finish()
@@ -213,7 +221,7 @@ class CreateRoomActivity : AppCompatActivity() {
     private fun selectImage() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "image/*"
-        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+        selectImageLauncher.launch(intent)
     }
 
     private fun scrollToBottom(recyclerView: RecyclerView) {
@@ -230,49 +238,26 @@ class CreateRoomActivity : AppCompatActivity() {
         }
     }
 
-    class ItemSpacingDecoration(private val spacing: Int) : RecyclerView.ItemDecoration() {
-        override fun getItemOffsets(
-            outRect: Rect,
-            view: View,
-            parent: RecyclerView,
-            state: RecyclerView.State
-        ) {
-            outRect.left = spacing
-            outRect.right = spacing
-            outRect.top = spacing
-            outRect.bottom = spacing
-        }
-    }
-
-    private fun checkPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSON_STORAGE)
-        } else {
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()){
+        if(it){
             selectImage()
+        }else{
+            toast("需要選取照片的權限，請至設定開啟！")
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode == PERMISSON_STORAGE && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-            selectImage()
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null){
-            val selectedImageUri: Uri = data.data!!
+    private val selectImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+        Log.e("onResult", "$it")
+        if(it.resultCode == Activity.RESULT_OK && it.data != null){
+            val selectedImageUri: Uri = it.data?.data!!
             var path: String? = null
 
             path = if(Build.VERSION.SDK_INT < 29){
                 getImagePath(selectedImageUri)!!
-            }else{
+            }else if(Build.VERSION.SDK_INT < 32){
                 getImagePath2(selectedImageUri)
+            }else{
+                getImagePath3(selectedImageUri)
             }
 
             if(!path.isNullOrEmpty()){
@@ -303,6 +288,8 @@ class CreateRoomActivity : AppCompatActivity() {
                         Toast.makeText(this@CreateRoomActivity, "error ${t.message}", Toast.LENGTH_SHORT).show()
                     }
                 })
+            }else{
+                toast("無法傳送照片！")
             }
         }
     }
@@ -349,6 +336,18 @@ class CreateRoomActivity : AppCompatActivity() {
                     }
                     filePathCursor.close()
                 }
+            }
+            cursor.close()
+        }
+        return path
+    }
+
+    private fun getImagePath3(uri: Uri): String? {
+        var path: String? = null
+        val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
             }
             cursor.close()
         }
