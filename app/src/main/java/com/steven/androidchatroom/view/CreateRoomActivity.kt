@@ -4,51 +4,45 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.database.Cursor
-import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentResolverCompat
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
-import com.steven.androidchatroom.R
 import com.steven.androidchatroom.databinding.ActivityCreateRoomBinding
 import com.steven.androidchatroom.model.WebSocketModel
 import com.steven.androidchatroom.model.adapter.ChatAdapter
 import com.steven.androidchatroom.model.response.ApiResponse
 import com.steven.androidchatroom.util.ItemDecoration
 import com.steven.androidchatroom.util.toast
+import com.steven.androidchatroom.viewModel.ChatViewModel
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.web.ApiInterface
 import com.steven.androidchatroom.web.WebConfig
 import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.concurrent.thread
 
 @AndroidEntryPoint
 class CreateRoomActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityCreateRoomBinding
+    private val mViewModel: ChatViewModel by viewModels()
     private lateinit var chatAdapter: ChatAdapter
     lateinit var websocket: WebSocket
     private var roomId: String = ""
@@ -57,16 +51,17 @@ class CreateRoomActivity : AppCompatActivity() {
     private var memberId: String = ""
     private var friendName: String = ""
     private var friendId: String = ""
-    private val mApiClient = ApiClient()
-    private lateinit var api: ApiInterface
+//    private val mApiClient = ApiClient()
+//    private lateinit var api: ApiInterface
 
     var chatList: ArrayList<ApiResponse.ChatData> = arrayListOf()
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding = ActivityCreateRoomBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
-        api = mApiClient.getRetrofit().create(ApiInterface::class.java)
+//        api = mApiClient.getRetrofit().create(ApiInterface::class.java)
 
         name = intent.getStringExtra("name") ?: ""
         memberId = intent.getStringExtra("memberId") ?: ""
@@ -76,14 +71,39 @@ class CreateRoomActivity : AppCompatActivity() {
 
         mBinding.tvTitle.text = friendName
 
-        connectRoom()
+        initObserver()
         initListener()
+        connectRoom()
         getChatList()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         websocket.cancel()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun initObserver(){
+        mViewModel.chatListResponse.observe(this){
+            chatList = it.data
+            chatAdapter.updateData(chatList)
+            scrollToBottom(mBinding.rvChat)
+        }
+
+        mViewModel.unSendResponse.observe(this){
+            getChatList()
+        }
+
+        mViewModel.uploadPhotoResponse.observe(this){
+            val id = setChatId()
+            val message = Gson().toJson(WebSocketModel.MessageModel(roomId, memberId, name, friendId, "1", friendName, it.url ?: "", true, getDate()))
+            websocket.send(message.toString())
+            runOnUiThread {
+                chatList.add(ApiResponse.ChatData(id = id, it.url, getDate(), memberId, true, isUnSend = false))
+                chatAdapter.updateData(chatList)
+                scrollToBottom(mBinding.rvChat)
+            }
+        }
     }
 
     private fun initListener(){
@@ -111,18 +131,7 @@ class CreateRoomActivity : AppCompatActivity() {
         override fun onUnSendClick(data: ApiResponse.ChatData) {
             val message = WebSocketModel.MessageModel(roomId, memberId, friendId = friendId, type = "3", isUnsend = true)
             websocket.send(Gson().toJson(message))
-
-            api.unSendMessage(roomId, memberId, data.id.toString()).enqueue(object : Callback<ApiResponse.AddFriendResponse?>{
-                override fun onResponse(
-                    call: Call<ApiResponse.AddFriendResponse?>,
-                    response: retrofit2.Response<ApiResponse.AddFriendResponse?>
-                ) {
-                    getChatList()
-                }
-
-                override fun onFailure(call: Call<ApiResponse.AddFriendResponse?>, t: Throwable) {
-                }
-            })
+            mViewModel.unSendMessage(roomId, memberId, data.id.toString())
         }
     }
 
@@ -193,21 +202,7 @@ class CreateRoomActivity : AppCompatActivity() {
     }
 
     private fun getChatList(){
-        api.getChatList(roomId, friendId).enqueue(object : Callback<ApiResponse.ChatHistoryResponse?>{
-            override fun onResponse(
-                call: Call<ApiResponse.ChatHistoryResponse?>,
-                response: retrofit2.Response<ApiResponse.ChatHistoryResponse?>
-            ) {
-                if(response.body()?.status == 200){
-                    chatList = response.body()?.data!!
-                    chatAdapter.updateData(chatList)
-                    scrollToBottom(mBinding.rvChat)
-                }
-            }
-
-            override fun onFailure(call: Call<ApiResponse.ChatHistoryResponse?>, t: Throwable) {
-            }
-        })
+        mViewModel.getChatList(roomId, friendId)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -266,28 +261,7 @@ class CreateRoomActivity : AppCompatActivity() {
                 val requestBody = RequestBody.create("image/*".toMediaTypeOrNull(), file)
                 val part: MultipartBody.Part = MultipartBody.Part.createFormData("photo", file.name, requestBody)
 
-                api.uploadPhoto(part).enqueue(object: Callback<ApiResponse.UploadPhotoResponse>{
-                    @RequiresApi(Build.VERSION_CODES.O)
-                    override fun onResponse(
-                        call: Call<ApiResponse.UploadPhotoResponse>,
-                        response: retrofit2.Response<ApiResponse.UploadPhotoResponse>
-                    ) {
-                        if(response.body()?.status == 200){
-                            val id = setChatId()
-                            val message = Gson().toJson(WebSocketModel.MessageModel(roomId, memberId, name, friendId, "1", friendName, response.body()?.url ?: "", true, getDate()))
-                            websocket.send(message.toString())
-                            runOnUiThread {
-                                chatList.add(ApiResponse.ChatData(id = id, response.body()?.url,getDate(), memberId, true, isUnSend = false))
-                                chatAdapter.updateData(chatList)
-                                scrollToBottom(mBinding.rvChat)
-                            }
-                        }
-                    }
-
-                    override fun onFailure(call: Call<ApiResponse.UploadPhotoResponse>, t: Throwable) {
-                        Toast.makeText(this@CreateRoomActivity, "error ${t.message}", Toast.LENGTH_SHORT).show()
-                    }
-                })
+                mViewModel.uploadPhoto(part)
             }else{
                 toast("無法傳送照片！")
             }

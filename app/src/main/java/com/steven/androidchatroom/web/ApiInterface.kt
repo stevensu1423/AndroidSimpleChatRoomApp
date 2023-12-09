@@ -11,11 +11,11 @@ interface ApiInterface {
 
     @Multipart
     @POST("photos")
-    fun uploadPhoto(@Part photo: MultipartBody.Part): Call<ApiResponse.UploadPhotoResponse>
+    suspend fun uploadPhoto(@Part photo: MultipartBody.Part): ApiResponse.UploadPhotoResponse
 
     @FormUrlEncoded
     @POST("getChatList")
-    fun getChatList(@Field("roomId") roomId: String, @Field("senderId") friendId: String): Call<ApiResponse.ChatHistoryResponse?>
+    suspend fun getChatList(@Field("roomId") roomId: String, @Field("senderId") friendId: String): ApiResponse.ChatHistoryResponse
 
     @FormUrlEncoded
     @POST("friendConfirm")
@@ -37,13 +37,21 @@ interface ApiInterface {
     @POST("login")
     suspend fun login(@Field("email") email: String, @Field("password") password: String): ApiResponse.LoginResponse
 
+//    @FormUrlEncoded
+//    @POST("register")
+//    fun register(@Field("email") email: String, @Field("password") password: String, @Field("userName") userName: String): Call<ApiResponse.RegisterResponse>
+
     @FormUrlEncoded
     @POST("register")
-    fun register(@Field("email") email: String, @Field("password") password: String, @Field("userName") userName: String): Call<ApiResponse.RegisterResponse>
+    suspend fun register(@Field("email") email: String, @Field("password") password: String, @Field("userName") userName: String): ApiResponse.RegisterResponse
+
+//    @FormUrlEncoded
+//    @POST("unSendMessage")
+//    fun unSendMessage(@Field("roomId") roomId: String, @Field("senderId") friendId: String, @Field("chatId") chatId: String): Call<ApiResponse.AddFriendResponse?>
 
     @FormUrlEncoded
     @POST("unSendMessage")
-    fun unSendMessage(@Field("roomId") roomId: String, @Field("senderId") friendId: String, @Field("chatId") chatId: String): Call<ApiResponse.AddFriendResponse?>
+    suspend fun unSendMessage(@Field("roomId") roomId: String, @Field("senderId") senderId: String, @Field("chatId") chatId: String): ApiResponse.AddFriendResponse
 
 
 

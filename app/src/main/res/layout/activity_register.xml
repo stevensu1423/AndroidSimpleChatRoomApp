@@ -6,7 +6,7 @@
     <data>
         <variable
             name="vm"
-            type="com.steven.androidchatroom.viewModel.LoginViewModel" />
+            type="com.steven.androidchatroom.viewModel.RegisterViewModel" />
         <import type="android.text.TextUtils"/>
     </data>
 
@@ -126,7 +126,7 @@
                 android:ems="10"
                 android:hint="稱呼"
                 android:inputType="textEmailAddress"
-                android:text="@={vm._account}"
+                android:text="@={vm._name}"
                 android:textSize="18dp" />
         </com.google.android.material.textfield.TextInputLayout>
 

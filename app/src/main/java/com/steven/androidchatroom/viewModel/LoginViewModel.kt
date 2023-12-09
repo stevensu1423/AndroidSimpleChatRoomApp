@@ -29,11 +29,9 @@ class LoginViewModel @Inject constructor(private val repository: MainRepository)
 
     var _isRemember: MutableLiveData<Boolean> = MutableLiveData<Boolean>(false)
 
-    val isRemember: LiveData<Boolean> get() = _isRemember
-
-    var loginResponse: MutableLiveData<ApiResponse.LoginResponse>? = MutableLiveData()
-    var errorResponse: MutableLiveData<ApiResponse.ErrorResponse>? = MutableLiveData()
-    var dialogLoading: MutableLiveData<Boolean>? = MutableLiveData(false)
+    val loginResponse: MutableLiveData<ApiResponse.LoginResponse>? = MutableLiveData()
+    val errorResponse: MutableLiveData<ApiResponse.ErrorResponse>? = MutableLiveData()
+    val dialogLoading: MutableLiveData<Boolean>? = MutableLiveData(false)
 
     fun checkIsRememberAccount(dataStore: DataStore<Preferences>){
         viewModelScope.launch(Dispatchers.IO){

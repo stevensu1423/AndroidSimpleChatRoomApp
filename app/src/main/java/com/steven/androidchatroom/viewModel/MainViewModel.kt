@@ -30,12 +30,12 @@ class MainViewModel @Inject constructor(private val repository: MainRepository):
         value = 0
     }
 
-    var friendListResponse: MutableLiveData<ApiResponse.FriendListResponse>? = MutableLiveData()
-    var errorResponse: MutableLiveData<ApiResponse.ErrorResponse>? = MutableLiveData()
-    var friendRequestResponse: MutableLiveData<ApiResponse.FriendDataResponse>? = MutableLiveData()
-    var dialogLoading: MutableLiveData<Boolean>? = MutableLiveData(false)
-    var addFriendResponse: MutableLiveData<ApiResponse.AddFriendResponse>? = MutableLiveData()
-    var friendConfirmResponse: MutableLiveData<ApiResponse.AddFriendResponse>? = MutableLiveData()
+    val friendListResponse: MutableLiveData<ApiResponse.FriendListResponse>? = MutableLiveData()
+    val errorResponse: MutableLiveData<ApiResponse.ErrorResponse>? = MutableLiveData()
+    val friendRequestResponse: MutableLiveData<ApiResponse.FriendDataResponse>? = MutableLiveData()
+    val dialogLoading: MutableLiveData<Boolean>? = MutableLiveData(false)
+    val addFriendResponse: MutableLiveData<ApiResponse.AddFriendResponse>? = MutableLiveData()
+    val friendConfirmResponse: MutableLiveData<ApiResponse.AddFriendResponse>? = MutableLiveData()
 
 
     fun getMyFriendList(){

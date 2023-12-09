@@ -4,9 +4,11 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.viewModels
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityRegisterBinding
 import com.steven.androidchatroom.model.response.ApiResponse
+import com.steven.androidchatroom.viewModel.RegisterViewModel
 import com.steven.androidchatroom.web.ApiInterface
 import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
@@ -16,17 +18,28 @@ import retrofit2.Response
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityRegisterBinding
-    private val mApiClient = ApiClient()
-    private lateinit var api: ApiInterface
+    private val mViewModel: RegisterViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         mBinding = ActivityRegisterBinding.inflate(layoutInflater)
+        mBinding.lifecycleOwner = this
+        mBinding.vm = mViewModel
         setContentView(mBinding.root)
-        api = mApiClient.getRetrofit().create(ApiInterface::class.java)
 
         initListener()
+        initObserver()
+    }
+
+    private fun initObserver(){
+        mViewModel.registerResponse.observe(this){
+            val intent = Intent()
+            intent.putExtra("userName", it?.userName)
+            intent.putExtra("memberId", it?.memberId)
+            intent.setClass(this@RegisterActivity, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun initListener(){
@@ -59,35 +72,7 @@ class RegisterActivity : AppCompatActivity() {
                 ).show()
                 return@setOnClickListener
             }
-            api.register(email, password, name).enqueue(object : retrofit2.Callback<ApiResponse.RegisterResponse>{
-                override fun onResponse(
-                    call: Call<ApiResponse.RegisterResponse>,
-                    response: Response<ApiResponse.RegisterResponse>
-                ) {
-                    if(response.isSuccessful){
-                        if(response.body()?.status == 200){
-                            val data = response.body()
-                            val intent = Intent()
-                            intent.putExtra("userName", data?.userName)
-                            intent.putExtra("memberId", data?.memberId)
-                            intent.setClass(this@RegisterActivity, MainActivity::class.java)
-                            startActivity(intent)
-                            finish()
-                        }else{
-                            Toast.makeText(
-                                this@RegisterActivity,
-                                response.body()?.message.toString(),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                }
-
-                override fun onFailure(call: Call<ApiResponse.RegisterResponse>, t: Throwable) {
-                }
-            })
-
-
+            mViewModel.register(email, password, name)
         }
     }
 }
