@@ -3,7 +3,6 @@ package com.steven.androidchatroom.web
 
 import com.steven.androidchatroom.model.response.ApiResponse
 import okhttp3.MultipartBody
-import retrofit2.Call
 import retrofit2.http.*
 
 interface ApiInterface {
@@ -53,6 +52,8 @@ interface ApiInterface {
     @POST("unSendMessage")
     suspend fun unSendMessage(@Field("roomId") roomId: String, @Field("senderId") senderId: String, @Field("chatId") chatId: String): ApiResponse.AddFriendResponse
 
-
+    @FormUrlEncoded
+    @POST("updateFcmToken")
+    suspend fun updateFcmToken(@Field("memberId") memberId: String, @Field("fcmToken") fcmToken: String): ApiResponse.FcmTokenResponse
 
 }

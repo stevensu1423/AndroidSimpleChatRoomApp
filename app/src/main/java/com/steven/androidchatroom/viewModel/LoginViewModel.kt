@@ -76,6 +76,22 @@ class LoginViewModel @Inject constructor(private val repository: MainRepository)
         }
     }
 
+    fun updateFcmToken(fcmToken: String){
+        viewModelScope.launch {
+            repository.updateFcmToken(loginResponse?.value?.memberId.toString(), fcmToken).catch {
+                errorResponse?.postValue(ApiResponse.ErrorResponse("推播錯誤 : ${it.message}"))
+            }.onStart {
+                dialogLoading?.postValue(true)
+            }.onCompletion {
+                dialogLoading?.postValue(false)
+            }.collect{
+                if(it.status != 200) {
+                    errorResponse?.postValue(ApiResponse.ErrorResponse("推播錯誤 : ${it.message}"))
+                }
+            }
+        }
+    }
+
 
 
 

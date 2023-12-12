@@ -1,10 +1,17 @@
 package com.steven.androidchatroom.view
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import com.steven.androidchatroom.MainApplication
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityLoginBinding
@@ -34,11 +41,13 @@ class LoginActivity : AppCompatActivity() {
         mViewModel.checkIsRememberAccount(dataStore)
         initListener()
         initObserver()
+        askNotificationPermission()
     }
 
     private fun initObserver(){
         mViewModel.loginResponse?.observe(this){
             it?.let { data ->
+                updateFcmToken()
                 mViewModel.setRememberAccount(dataStore)
                 MainApplication.mMemberId = data.memberId.toString()
                 val intent = Intent()
@@ -76,5 +85,40 @@ class LoginActivity : AppCompatActivity() {
             mViewModel.login()
         }
 
+    }
+
+    private fun updateFcmToken(){
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                return@OnCompleteListener
+            }
+            val token = task.result
+            mViewModel.updateFcmToken(token)
+        })
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // FCM SDK (and your app) can post notifications.
+        } else {
+        }
+    }
+
+    private fun askNotificationPermission() {
+        // This is only necessary for API level >= 33 (TIRAMISU)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                // FCM SDK (and your app) can post notifications.
+            } else if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+
+            } else {
+                // Directly ask for the permission
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
     }
 }

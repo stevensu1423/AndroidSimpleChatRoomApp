@@ -91,4 +91,9 @@ class ApiResponse {
         val memberId: String?,
         val name: String?
     )
+
+    data class FcmTokenResponse(
+        val status: Int?,
+        val message: String
+    )
 }

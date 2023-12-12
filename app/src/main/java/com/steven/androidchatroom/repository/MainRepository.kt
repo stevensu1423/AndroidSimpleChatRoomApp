@@ -45,4 +45,8 @@ class MainRepository @Inject constructor(private val apiInterface: ApiInterface,
         emit(apiInterface.register(email, password, userName))
     }.flowOn(coroutineContext)
 
+    suspend fun updateFcmToken(memberId: String, fcmToken: String)  = flow {
+        emit(apiInterface.updateFcmToken(memberId, fcmToken))
+    }.flowOn(coroutineContext)
+
 }
