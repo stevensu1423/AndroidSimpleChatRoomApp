@@ -5,18 +5,16 @@ Android簡易聊天室的App端，你可以在[這裡](https://github.com/steven
 一個簡單的Android聊天室App，能處理即時通訊、圖片上傳、登入、好友
 
 ## 修改server連結
-至 **web/ApiClient**
+至 **web**
+加入**WebConfig.kt**
 ```kotlin
-private val baseUrl = "在這邊輸入server端的url" //範例: http://xxx.xxx.xxx.xxx:3000/chat
-```
+package com.steven.androidchatroom.web
 
-## 修改webSocket連結
-至 **view/CreateRoomActivity**
-```kotlin
-private val address = "在這邊輸入server端webSocket的url" //範例: http://xxx.xxx.xxx.xxx:3000
+object WebConfig {
+    const val API_URL = "在這邊輸入server端的url" //範例: http://xxx.xxx.xxx.xxx:3000/chat
+    const val WEBSOCKET_URL = "在這邊輸入server端webSocket的url" //範例: http://xxx.xxx.xxx.xxx:3000
+}
 ```
-
 ## 注意事項
 - 手機和Server需要連線相同的區域網路
-- 不同的手機可能導致連線不同步，這裡需要再改進
 - 圖片上傳需要在目錄中有 **`uploads`** 資料夾
