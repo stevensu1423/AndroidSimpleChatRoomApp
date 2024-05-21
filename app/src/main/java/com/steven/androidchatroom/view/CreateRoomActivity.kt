@@ -114,7 +114,6 @@ class CreateRoomActivity : AppCompatActivity() {
         chatAdapter = ChatAdapter(memberId, friendName, this)
         mBinding.rvChat.addItemDecoration(ItemDecoration(8, 8,8, 8))
         val layoutManager = LinearLayoutManager(this)
-        layoutManager.stackFromEnd = true
         mBinding.rvChat.layoutManager = layoutManager
         mBinding.rvChat.adapter = chatAdapter
         chatAdapter.setCallbackListener(callbackListener)
