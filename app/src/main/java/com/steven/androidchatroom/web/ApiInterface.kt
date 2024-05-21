@@ -50,7 +50,7 @@ interface ApiInterface {
 
     @FormUrlEncoded
     @POST("unSendMessage")
-    suspend fun unSendMessage(@Field("roomId") roomId: String, @Field("senderId") senderId: String, @Field("chatId") chatId: String): ApiResponse.AddFriendResponse
+    suspend fun unSendMessage(@Field("roomId") roomId: String, @Field("senderId") senderId: String, @Field("chatId") chatId: String): ApiResponse.UnSendResponse
 
     @FormUrlEncoded
     @POST("updateFcmToken")

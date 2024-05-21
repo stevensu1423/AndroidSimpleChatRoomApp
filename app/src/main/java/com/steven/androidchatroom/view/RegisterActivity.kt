@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import com.steven.androidchatroom.web.ApiClient
 import com.steven.androidchatroom.databinding.ActivityRegisterBinding
 import com.steven.androidchatroom.model.response.ApiResponse
@@ -33,6 +35,7 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun initObserver(){
         mViewModel.registerResponse.observe(this){
+            updateFcmToken(it?.memberId.toString())
             val intent = Intent()
             intent.putExtra("userName", it?.userName)
             intent.putExtra("memberId", it?.memberId)
@@ -74,5 +77,15 @@ class RegisterActivity : AppCompatActivity() {
             }
             mViewModel.register(email, password, name)
         }
+    }
+
+    private fun updateFcmToken(memberId: String){
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                return@OnCompleteListener
+            }
+            val token = task.result
+            mViewModel.updateFcmToken(memberId, token)
+        })
     }
 }

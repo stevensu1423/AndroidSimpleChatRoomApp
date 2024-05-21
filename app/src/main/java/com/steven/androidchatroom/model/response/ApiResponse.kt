@@ -20,10 +20,15 @@ class ApiResponse {
         val time: String? = null,
         val senderId: String? = null,
         val isImage: Boolean? = false,
-        val isRead: Boolean? = false,
-        val isUnSend: Boolean? = false
+        var isRead: Boolean? = false,
+        var isUnSend: Boolean? = false
     )
 
+    data class UnSendResponse(
+        val status: Int?,
+        val message: String,
+        val chatId: String? = null
+    )
 
     data class AddFriendResponse(
         val status: Int?,

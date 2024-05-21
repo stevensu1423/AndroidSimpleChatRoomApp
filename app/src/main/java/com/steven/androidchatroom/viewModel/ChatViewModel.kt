@@ -19,7 +19,7 @@ class ChatViewModel @Inject constructor(private val repository: MainRepository):
     val chatListResponse: MutableLiveData<ApiResponse.ChatHistoryResponse> = MutableLiveData()
     val errorResponse: MutableLiveData<ApiResponse.ErrorResponse>? = MutableLiveData()
     val dialogLoading: MutableLiveData<Boolean>? = MutableLiveData(false)
-    val unSendResponse: MutableLiveData<ApiResponse.AddFriendResponse> = MutableLiveData()
+    val unSendResponse: MutableLiveData<ApiResponse.UnSendResponse> = MutableLiveData()
     val uploadPhotoResponse: MutableLiveData<ApiResponse.UploadPhotoResponse> = MutableLiveData()
 
     fun getChatList(roomId: String, friendId: String){
@@ -50,7 +50,7 @@ class ChatViewModel @Inject constructor(private val repository: MainRepository):
                 dialogLoading?.postValue(false)
             }.collect{
                 if(it.status == 200) {
-                    unSendResponse?.postValue(it)
+                    unSendResponse.postValue(it)
                 }else{
                     errorResponse?.postValue(ApiResponse.ErrorResponse("錯誤 : ${it.message}"))
                 }

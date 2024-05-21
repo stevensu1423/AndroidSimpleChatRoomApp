@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.steven.androidchatroom.R
+import com.steven.androidchatroom.model.ChatRoomStatus
 import com.steven.androidchatroom.model.response.ApiResponse
 import org.w3c.dom.Text
 
@@ -115,6 +116,37 @@ class ChatAdapter(private var memberId: String, val friendName: String, val cont
     fun updateData(data: ArrayList<ApiResponse.ChatData>){
         dataList = data
         notifyDataSetChanged()
+    }
+
+    fun updateSendData(data: ApiResponse.ChatData){
+        dataList?.add(data)
+        notifyItemInserted(dataList?.lastIndex ?: 0)
+    }
+
+    fun updateSingleData(chatId: String?, type: String){
+        if(type == ChatRoomStatus.MESSAGE_READ_ALL.status){
+            dataList?.forEachIndexed { index, chatData ->
+                if(chatData.isRead == false){
+                    chatData.isRead = true
+                }
+            }
+        }
+        dataList.apply {
+            this?.indexOfLast {
+                it.id == chatId
+            }.let {
+                when(type){
+                    ChatRoomStatus.MESSAGE_UN_SEND.status -> {
+                        this?.get(it ?: 0)?.isUnSend = true
+                        notifyItemChanged(it ?: 0)
+                    }
+                    ChatRoomStatus.MESSAGE_READ.status -> {
+                        this?.get(it ?: 0)?.isRead = true
+                        notifyItemChanged(it ?: 0)
+                    }
+                }
+            }
+        }
     }
 
     fun setCallbackListener(callbackListener: CallbackListener){

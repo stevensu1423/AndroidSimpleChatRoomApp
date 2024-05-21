@@ -58,4 +58,20 @@ class RegisterViewModel @Inject constructor(private val repository: MainReposito
             }
         }
     }
+
+    fun updateFcmToken(memberId: String, fcmToken: String){
+        viewModelScope.launch {
+            repository.updateFcmToken(memberId, fcmToken).catch {
+                errorResponse.postValue(ApiResponse.ErrorResponse("推播錯誤 : ${it.message}"))
+            }.onStart {
+                dialogLoading.postValue(true)
+            }.onCompletion {
+                dialogLoading.postValue(false)
+            }.collect{
+                if(it.status != 200) {
+                    errorResponse.postValue(ApiResponse.ErrorResponse("推播錯誤 : ${it.message}"))
+                }
+            }
+        }
+    }
 }
